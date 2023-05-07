@@ -21,6 +21,7 @@ import kotlinx.coroutines.channels.Channel
 import java.io.InputStream
 import java.net.URL
 import java.util.Base64
+import java.io.ByteArrayInputStream
 
 
 class CapacitorGoogleMap(
@@ -766,8 +767,9 @@ class CapacitorGoogleMap(
             } else {
                 try {
                     var stream: InputStream? = null
-                    if (marker.iconUrl!!.startsWith("base64")) {
-                        stream = ByteArray.inputStream(Base64.getDecoder().decode(marker.iconUrl))
+                    if (marker.iconUrl!!.contains("base64")) {
+                        var byteArray = Base64.getDecoder().decode(marker.iconUrl)
+                        stream = byteArray.inputStream()
                     } else if (marker.iconUrl!!.startsWith("https:")) {
                         stream = URL(marker.iconUrl).openConnection().getInputStream()
                     } else {
