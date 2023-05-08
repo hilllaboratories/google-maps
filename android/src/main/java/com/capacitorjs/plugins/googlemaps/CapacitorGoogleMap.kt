@@ -768,16 +768,12 @@ class CapacitorGoogleMap(
                 try {
                     var stream: InputStream? = null
                     if (marker.iconUrl!!.contains("base64")) {
-                        Log.w(
-                            "CapacitorGoogleMaps",
-                            "Found base64 image '${marker.iconUrl}': Attempting to draw. ."
-                        )
-                        var base64 = marker.iconUrl.split(",");
+                        val base64: String = marker.iconUrl!!.split(",")[1];
                         Log.w(
                             "CapacitorGoogleMaps",
                             "Raw base64: '${base64}': Attempting to draw. ."
                         )
-                        var byteArray = Base64.getDecoder().decode(base64[1])
+                        var byteArray = Base64.getDecoder().decode(base64)
                         stream = byteArray.inputStream()
                     } else if (marker.iconUrl!!.startsWith("https:")) {
                         stream = URL(marker.iconUrl).openConnection().getInputStream()
