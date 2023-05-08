@@ -578,10 +578,12 @@ public class Map {
             if let iconImage = self.markerIcons[iconUrl] {
                 newMarker.icon = getResizedIcon(iconImage, marker)
             } else {
-                if iconUrl.starts(with: "base64") {
-                    let iconImage = UIImage(data: Data(base64Encoded: iconUrl)!)
+                if iconUrl.contains("base64") {
+                    let base64 = String(iconUrl.split(separator: ",")[1])
+                    let decodedData = Data(base64Encoded: base64)
+                    let iconImage = UIImage(data: decodedData!)
                     self.markerIcons[iconUrl] = iconImage
-                    newMarker.icon = getResizedIcon(iconImage, marker)
+                    newMarker.icon = getResizedIcon(iconImage!, marker)
                 }
                 else if iconUrl.starts(with: "https:") {
                     DispatchQueue.main.async {
