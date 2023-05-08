@@ -7,6 +7,7 @@ export interface LatLngBoundsInterface {
     center: LatLng;
     northeast: LatLng;
 }
+
 export declare class LatLngBounds {
     southwest: LatLng;
     center: LatLng;
@@ -14,6 +15,17 @@ export declare class LatLngBounds {
     constructor(bounds: LatLngBoundsInterface);
     contains(point: LatLng): Promise<boolean>;
     extend(point: LatLng): Promise<LatLngBounds>;
+}
+
+export namespace Bounds {
+    export class LatLngBounds {
+        southwest: LatLng;
+        center: LatLng;
+        northeast: LatLng;
+        constructor(bounds: LatLngBoundsInterface);
+        contains(point: LatLng): Promise<boolean>;
+        extend(point: LatLng): Promise<LatLngBounds>;
+    }
 }
 /**
  * An interface representing a pair of latitude and longitude coordinates.
