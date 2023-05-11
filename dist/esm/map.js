@@ -63,6 +63,7 @@ export class GoogleMap {
     }
     static async getElementBounds(element) {
         return new Promise(resolve => {
+            console.log("Element being bounded", element);
             let elementBounds = element.getBoundingClientRect();
             if (elementBounds.width == 0) {
                 let retries = 0;
@@ -78,7 +79,7 @@ export class GoogleMap {
                         clearInterval(boundsInterval);
                         resolve(elementBounds);
                     }
-                }, 100);
+                }, 1000);
             }
             else {
                 resolve(elementBounds);

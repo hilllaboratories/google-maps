@@ -124,6 +124,7 @@ var capacitorCapacitorGoogleMaps = (function (exports, core, markerclusterer) {
         }
         static async getElementBounds(element) {
             return new Promise(resolve => {
+                console.log("Element being bounded", element);
                 let elementBounds = element.getBoundingClientRect();
                 if (elementBounds.width == 0) {
                     let retries = 0;
@@ -139,7 +140,7 @@ var capacitorCapacitorGoogleMaps = (function (exports, core, markerclusterer) {
                             clearInterval(boundsInterval);
                             resolve(elementBounds);
                         }
-                    }, 100);
+                    }, 1000);
                 }
                 else {
                     resolve(elementBounds);
