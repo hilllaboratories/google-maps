@@ -26,6 +26,7 @@ class GMViewController: UIViewController {
         let camera = GMSCameraPosition.camera(withLatitude: cameraPosition["latitude"] ?? 0, longitude: cameraPosition["longitude"] ?? 0, zoom: Float(cameraPosition["zoom"] ?? 12))
         let frame = CGRect(x: mapViewBounds["x"] ?? 0, y: mapViewBounds["y"] ?? 0, width: mapViewBounds["width"] ?? 0, height: mapViewBounds["height"] ?? 0)
         self.GMapView = GMSMapView.map(withFrame: frame, camera: camera)
+        self.GMapView.settings.myLocationButton = true
         self.view = GMapView
     }
 
@@ -421,7 +422,6 @@ public class Map {
 
     func enableCurrentLocation(enabled: Bool) throws {
         DispatchQueue.main.sync {
-            self.mapViewController.GMapView.settings.myLocationButton = true
             self.mapViewController.GMapView.isMyLocationEnabled = enabled
         }
     }
