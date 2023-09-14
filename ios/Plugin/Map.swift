@@ -26,6 +26,7 @@ class GMViewController: UIViewController {
         let camera = GMSCameraPosition.camera(withLatitude: cameraPosition["latitude"] ?? 0, longitude: cameraPosition["longitude"] ?? 0, zoom: Float(cameraPosition["zoom"] ?? 12))
         let frame = CGRect(x: mapViewBounds["x"] ?? 0, y: mapViewBounds["y"] ?? 0, width: mapViewBounds["width"] ?? 0, height: mapViewBounds["height"] ?? 0)
         self.GMapView = GMSMapView.map(withFrame: frame, camera: camera)
+        self.GMapView.settings.myLocationButton = true
         self.view = GMapView
     }
 
@@ -578,10 +579,12 @@ public class Map {
             if let iconImage = self.markerIcons[iconUrl] {
                 newMarker.icon = getResizedIcon(iconImage, marker)
             } else {
-                if iconUrl.starts(with: "base64") {
-                    let iconImage = UIImage(data: Data(base64Encoded: iconUrl)!)
+                if iconUrl.contains("base64") {
+                    let base64 = String(iconUrl.split(separator: ",")[1])
+                    let decodedData = Data(base64Encoded: base64)
+                    let iconImage = UIImage(data: decodedData!)
                     self.markerIcons[iconUrl] = iconImage
-                    newMarker.icon = getResizedIcon(iconImage, marker)
+                    newMarker.icon = getResizedIcon(iconImage!, marker)
                 }
                 else if iconUrl.starts(with: "https:") {
                     DispatchQueue.main.async {

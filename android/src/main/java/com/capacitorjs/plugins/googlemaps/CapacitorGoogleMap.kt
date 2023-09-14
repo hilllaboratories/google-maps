@@ -21,6 +21,7 @@ import kotlinx.coroutines.channels.Channel
 import java.io.InputStream
 import java.net.URL
 import java.util.Base64
+import java.io.ByteArrayInputStream
 
 
 class CapacitorGoogleMap(
@@ -184,12 +185,15 @@ class CapacitorGoogleMap(
                     val googleMapMarker = googleMap?.addMarker(markerOptions.await())
                     it.googleMapMarker = googleMapMarker
 
-                    if (clusterManager != null) {
-                        googleMapMarker?.remove()
-                    }
+                    if (googleMapMarker != null) {
+                        if (clusterManager != null) {
+                            googleMapMarker.remove()
+                        }
 
-                    markers[googleMapMarker!!.id] = it
-                    markerIds.add(googleMapMarker.id)
+
+                        markers[googleMapMarker.id] = it
+                        markerIds.add(googleMapMarker.id)
+                    }
                 }
 
                 if (clusterManager != null) {
@@ -766,8 +770,14 @@ class CapacitorGoogleMap(
             } else {
                 try {
                     var stream: InputStream? = null
-                    if (marker.iconUrl!!.startsWith("base64")) {
-                        stream = ByteArray.inputStream(Base64.getDecoder().decode(marker.iconUrl))
+                    if (marker.iconUrl!!.contains("base64")) {
+                        val base64: String = marker.iconUrl!!.split(",")[1];
+                        Log.w(
+                            "CapacitorGoogleMaps",
+                            "Raw base64: '${base64}': Attempting to draw. ."
+                        )
+                        var byteArray = Base64.getDecoder().decode(base64)
+                        stream = byteArray.inputStream()
                     } else if (marker.iconUrl!!.startsWith("https:")) {
                         stream = URL(marker.iconUrl).openConnection().getInputStream()
                     } else {
