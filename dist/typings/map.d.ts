@@ -3,6 +3,8 @@ import { LatLngBounds, MapType } from './definitions';
 import type { CreateMapArgs } from './implementation';
 export interface GoogleMapInterface {
     create(options: CreateMapArgs, callback?: MapListenerCallback<MapReadyCallbackData>): Promise<GoogleMap>;
+    enableTouch(): Promise<void>;
+    disableTouch(): Promise<void>;
     enableClustering(
     /**
      * The minimum number of markers that can be clustered together. The default is 4 markers.
@@ -31,6 +33,12 @@ export interface GoogleMapInterface {
     enableAccessibilityElements(enabled: boolean): Promise<void>;
     enableCurrentLocation(enabled: boolean): Promise<void>;
     setPadding(padding: MapPadding): Promise<void>;
+    /**
+     * Sets the map viewport to contain the given bounds.
+     * @param bounds The bounds to fit in the viewport.
+     * @param padding Optional padding to apply in pixels. The bounds will be fit in the part of the map that remains after padding is removed.
+     */
+    fitBounds(bounds: LatLngBounds, padding?: number): Promise<void>;
     setOnBoundsChangedListener(callback?: MapListenerCallback<CameraIdleCallbackData>): Promise<void>;
     setOnCameraIdleListener(callback?: MapListenerCallback<CameraIdleCallbackData>): Promise<void>;
     setOnCameraMoveStartedListener(callback?: MapListenerCallback<CameraMoveStartedCallbackData>): Promise<void>;
@@ -51,6 +59,7 @@ export interface GoogleMapInterface {
 export declare class GoogleMap {
     private id;
     private element;
+    private resizeObserver;
     private onBoundsChangedListener?;
     private onCameraIdleListener?;
     private onCameraMoveStartedListener?;
@@ -76,6 +85,18 @@ export declare class GoogleMap {
      */
     static create(options: CreateMapArgs, callback?: MapListenerCallback<MapReadyCallbackData>): Promise<GoogleMap>;
     private static getElementBounds;
+    /**
+     * Enable touch events on native map
+     *
+     * @returns void
+     */
+    enableTouch(): Promise<void>;
+    /**
+     * Disable touch events on native map
+     *
+     * @returns void
+     */
+    disableTouch(): Promise<void>;
     /**
      * Enable marker clustering
      *
@@ -187,6 +208,7 @@ export declare class GoogleMap {
      * @returns {LatLngBounds}
      */
     getMapBounds(): Promise<LatLngBounds>;
+    fitBounds(bounds: LatLngBounds, padding?: number): Promise<void>;
     initScrolling(): void;
     disableScrolling(): void;
     handleScrollEvent: () => void;

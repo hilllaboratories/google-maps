@@ -6,6 +6,7 @@ class MapCustomElement extends HTMLElement {
         super();
     }
     connectedCallback() {
+        this.innerHTML = '';
         if (Capacitor.getPlatform() == 'ios') {
             this.style.overflow = 'scroll';
             this.style['-webkit-overflow-scrolling'] = 'touch';
@@ -19,6 +20,7 @@ customElements.define('capacitor-google-map', MapCustomElement);
 export class GoogleMap {
     constructor(id) {
         this.element = null;
+        this.resizeObserver = null;
         this.handleScrollEvent = () => this.updateMapBounds();
         this.id = id;
     }
@@ -49,8 +51,80 @@ export class GoogleMap {
         }
         if (Capacitor.isNativePlatform()) {
             options.element = {};
+            const getMapBounds = () => {
+                var _a, _b;
+                const mapRect = (_b = (_a = newMap.element) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect()) !== null && _b !== void 0 ? _b : {};
+                return {
+                    x: mapRect.x,
+                    y: mapRect.y,
+                    width: mapRect.width,
+                    height: mapRect.height,
+                };
+            };
+            const onDisplay = () => {
+                CapacitorGoogleMaps.onDisplay({
+                    id: newMap.id,
+                    mapBounds: getMapBounds(),
+                });
+            };
+            const onResize = () => {
+                CapacitorGoogleMaps.onResize({
+                    id: newMap.id,
+                    mapBounds: getMapBounds(),
+                });
+            };
+            const ionicPage = newMap.element.closest('.ion-page');
+            if (Capacitor.getPlatform() === 'ios' && ionicPage) {
+                ionicPage.addEventListener('ionViewWillEnter', () => {
+                    setTimeout(() => {
+                        onDisplay();
+                    }, 100);
+                });
+                ionicPage.addEventListener('ionViewDidEnter', () => {
+                    setTimeout(() => {
+                        onDisplay();
+                    }, 100);
+                });
+            }
+            const lastState = {
+                width: elementBounds.width,
+                height: elementBounds.height,
+                isHidden: false,
+            };
+            newMap.resizeObserver = new ResizeObserver(() => {
+                if (newMap.element != null) {
+                    const mapRect = newMap.element.getBoundingClientRect();
+                    const isHidden = mapRect.width === 0 && mapRect.height === 0;
+                    if (!isHidden) {
+                        if (lastState.isHidden) {
+                            if (Capacitor.getPlatform() === 'ios' && !ionicPage) {
+                                onDisplay();
+                            }
+                        }
+                        else if (lastState.width !== mapRect.width ||
+                            lastState.height !== mapRect.height) {
+                            onResize();
+                        }
+                    }
+                    lastState.width = mapRect.width;
+                    lastState.height = mapRect.height;
+                    lastState.isHidden = isHidden;
+                }
+            });
+            newMap.resizeObserver.observe(newMap.element);
         }
-        await CapacitorGoogleMaps.create(options);
+        // small delay to allow for iOS WKWebView to setup corresponding element sub-scroll views ???
+        await new Promise((resolve, reject) => {
+            setTimeout(async () => {
+                try {
+                    await CapacitorGoogleMaps.create(options);
+                    resolve(undefined);
+                }
+                catch (err) {
+                    reject(err);
+                }
+            }, 200);
+        });
         if (callback) {
             const onMapReadyListener = await CapacitorGoogleMaps.addListener('onMapReady', (data) => {
                 if (data.mapId == newMap.id) {
@@ -63,7 +137,6 @@ export class GoogleMap {
     }
     static async getElementBounds(element) {
         return new Promise(resolve => {
-            console.log("Element being bounded", element);
             let elementBounds = element.getBoundingClientRect();
             if (elementBounds.width == 0) {
                 let retries = 0;
@@ -79,11 +152,31 @@ export class GoogleMap {
                         clearInterval(boundsInterval);
                         resolve(elementBounds);
                     }
-                }, 1000);
+                }, 100);
             }
             else {
                 resolve(elementBounds);
             }
+        });
+    }
+    /**
+     * Enable touch events on native map
+     *
+     * @returns void
+     */
+    async enableTouch() {
+        return CapacitorGoogleMaps.enableTouch({
+            id: this.id,
+        });
+    }
+    /**
+     * Disable touch events on native map
+     *
+     * @returns void
+     */
+    async disableTouch() {
+        return CapacitorGoogleMaps.disableTouch({
+            id: this.id,
         });
     }
     /**
@@ -203,8 +296,12 @@ export class GoogleMap {
      * Destroy the current instance of the map
      */
     async destroy() {
+        var _a;
         if (Capacitor.getPlatform() == 'android') {
             this.disableScrolling();
+        }
+        if (Capacitor.isNativePlatform()) {
+            (_a = this.resizeObserver) === null || _a === void 0 ? void 0 : _a.disconnect();
         }
         this.removeAllMapListeners();
         return CapacitorGoogleMaps.destroy({
@@ -310,6 +407,13 @@ export class GoogleMap {
         return new LatLngBounds(await CapacitorGoogleMaps.getMapBounds({
             id: this.id,
         }));
+    }
+    async fitBounds(bounds, padding) {
+        return CapacitorGoogleMaps.fitBounds({
+            id: this.id,
+            bounds,
+            padding,
+        });
     }
     initScrolling() {
         const ionContents = document.getElementsByTagName('ion-content');
@@ -686,13 +790,33 @@ export class GoogleMap {
             this.onMapClickListener.remove();
             this.onMapClickListener = undefined;
         }
+        if (this.onPolylineClickListener) {
+            this.onPolylineClickListener.remove();
+            this.onPolylineClickListener = undefined;
+        }
         if (this.onMarkerClickListener) {
             this.onMarkerClickListener.remove();
             this.onMarkerClickListener = undefined;
         }
+        if (this.onPolygonClickListener) {
+            this.onPolygonClickListener.remove();
+            this.onPolygonClickListener = undefined;
+        }
         if (this.onCircleClickListener) {
             this.onCircleClickListener.remove();
             this.onCircleClickListener = undefined;
+        }
+        if (this.onMarkerDragStartListener) {
+            this.onMarkerDragStartListener.remove();
+            this.onMarkerDragStartListener = undefined;
+        }
+        if (this.onMarkerDragListener) {
+            this.onMarkerDragListener.remove();
+            this.onMarkerDragListener = undefined;
+        }
+        if (this.onMarkerDragEndListener) {
+            this.onMarkerDragEndListener.remove();
+            this.onMarkerDragEndListener = undefined;
         }
         if (this.onMyLocationButtonClickListener) {
             this.onMyLocationButtonClickListener.remove();

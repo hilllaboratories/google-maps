@@ -3,7 +3,7 @@ import { GoogleMap } from '@capacitor/google-maps';
 import { IonButton, IonTextarea } from '@ionic/react';
 import BaseTestingPage from '../../components/BaseTestingPage';
 
-const CreateAndDestroyMapPage: React.FC = () => {
+const LocalizationPage: React.FC = () => {
   const [maps, setMaps] = useState<GoogleMap[]>([]);
   const [commandOutput, setCommandOutput] = useState('');
   const apiKey = process.env.REACT_APP_GOOGLE_MAPS_API_KEY;
@@ -18,11 +18,11 @@ const CreateAndDestroyMapPage: React.FC = () => {
     );
   };
 
-  const onMapBoundsChanged = (data: any) => {    
+  const onMapBoundsChanged = (data: any) => {
     setCommandOutput(
-        `MAP (${data.mapId}) BOUNDS CHANGED @ (${JSON.stringify(data.bounds)})`,
-      );
-  }
+      `MAP (${data.mapId}) BOUNDS CHANGED @ (${JSON.stringify(data.bounds)})`,
+    );
+  };
 
   async function createMaps() {
     setCommandOutput('');
@@ -44,6 +44,8 @@ const CreateAndDestroyMapPage: React.FC = () => {
             zoom: 8,
           },
           forceCreate: true,
+          region: 'JP',
+          language: 'ja',
         },
         onMapReady,
       );
@@ -91,7 +93,7 @@ const CreateAndDestroyMapPage: React.FC = () => {
     try {
       if (maps) {
         for (let map of maps) {
-         map.setOnBoundsChangedListener(onMapBoundsChanged);
+          map.setOnBoundsChangedListener(onMapBoundsChanged);
         }
         setCommandOutput('Map Bounds Changed Listeners Set');
       }
@@ -109,34 +111,6 @@ const CreateAndDestroyMapPage: React.FC = () => {
         }
 
         setCommandOutput('Map Click Listeners Destroyed');
-      }
-    } catch (err: any) {
-      setCommandOutput(err.message);
-    }
-  }
-
-  async function disableMapTouchEvents() {
-    setCommandOutput('');
-
-    try {
-      if (maps) {
-        for (let map of maps) {
-          map.disableTouch();
-        }
-      }
-    } catch (err: any) {
-      setCommandOutput(err.message);
-    }
-  }
-
-  async function enableMapTouchEvents() {
-    setCommandOutput('');
-
-    try {
-      if (maps) {
-        for (let map of maps) {
-          map.enableTouch();
-        }
       }
     } catch (err: any) {
       setCommandOutput(err.message);
@@ -169,7 +143,7 @@ const CreateAndDestroyMapPage: React.FC = () => {
   }
 
   return (
-    <BaseTestingPage pageTitle="Create and Destroy Map">
+    <BaseTestingPage pageTitle="Map Localization">
       <div>
         <IonButton expand="block" id="createMapButton" onClick={createMaps}>
           Create Maps
@@ -197,12 +171,6 @@ const CreateAndDestroyMapPage: React.FC = () => {
           onClick={removeOnMapClickListeners}
         >
           Remove On Map Click Listeners
-        </IonButton>
-        <IonButton expand='block' id="enableTouchEvents" onClick={enableMapTouchEvents}>
-          Enable Touch Events
-        </IonButton>
-        <IonButton expand='block' id="disableTouchEvents" onClick={disableMapTouchEvents}>
-          Disable Touch Events
         </IonButton>
         <IonButton expand="block" id="destroyMapButton" onClick={destroyMaps}>
           Destroy Maps
@@ -235,4 +203,4 @@ const CreateAndDestroyMapPage: React.FC = () => {
   );
 };
 
-export default CreateAndDestroyMapPage;
+export default LocalizationPage;
