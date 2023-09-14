@@ -171,12 +171,11 @@ public class Map {
                 if isScrollView && !isBridgeScrollView {
                     (item as? UIScrollView)?.isScrollEnabled = true
 
-                    let height = Double((item as? UIScrollView)?.contentSize.height ?? 0)
-                    let width = Double((item as? UIScrollView)?.contentSize.width ?? 0)
-                    let actualHeight = round(height / 2)
+                    let height = Double((item as? UIScrollView)?.bounds.height ?? 0)
+                    let width = Double((item as? UIScrollView)?.bounds.width ?? 0)
 
-                    let isWidthEqual = width == self.config.width
-                    let isHeightEqual = actualHeight == self.config.height
+                    let isWidthEqual = width == refWidth
+                    let isHeightEqual = height == refHeight
 
                     if isWidthEqual && isHeightEqual && item.tag < self.targetViewController?.tag ?? Map.MAP_TAG {
                         return item
