@@ -51,18 +51,26 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
         }
         return '';
     }
-    async importGoogleLib(apiKey) {
+    async importGoogleLib(apiKey, region, language) {
         if (this.gMapsRef === undefined) {
             const lib = await import('@googlemaps/js-api-loader');
             const loader = new lib.Loader({
                 apiKey: apiKey !== null && apiKey !== void 0 ? apiKey : '',
                 version: 'weekly',
                 libraries: ['places'],
+                language,
+                region,
             });
             const google = await loader.load();
             this.gMapsRef = google.maps;
             console.log('Loaded google maps API');
         }
+    }
+    async enableTouch(_args) {
+        this.maps[_args.id].map.setOptions({ gestureHandling: 'auto' });
+    }
+    async disableTouch(_args) {
+        this.maps[_args.id].map.setOptions({ gestureHandling: 'none' });
     }
     async setCamera(_args) {
         // Animation not supported yet...
@@ -79,18 +87,18 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
             if (type === 'roadmap') {
                 type = MapType.Normal;
             }
-            return { type };
+            return { type: `${type.charAt(0).toUpperCase()}${type.slice(1)}` };
         }
         throw new Error('Map type is undefined');
     }
     async setMapType(_args) {
         let mapType = _args.mapType.toLowerCase();
-        if (mapType === MapType.Normal) {
+        if (_args.mapType === MapType.Normal) {
             mapType = 'roadmap';
         }
         this.maps[_args.id].map.setMapTypeId(mapType);
     }
-    async enableIndoorMaps(_args) {
+    async enableIndoorMaps() {
         throw new Error('Method not supported on web.');
     }
     async enableTrafficLayer(_args) {
@@ -105,10 +113,10 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
             this.maps[_args.id].trafficLayer = undefined;
         }
     }
-    async enableAccessibilityElements(_args) {
+    async enableAccessibilityElements() {
         throw new Error('Method not supported on web.');
     }
-    dispatchMapEvent(_args) {
+    dispatchMapEvent() {
         throw new Error('Method not supported on web.');
     }
     async enableCurrentLocation(_args) {
@@ -156,6 +164,11 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
                 lng: bounds.getNorthEast().lng(),
             },
         });
+    }
+    async fitBounds(_args) {
+        const map = this.maps[_args.id].map;
+        const bounds = this.getLatLngBounds(_args.bounds);
+        map.fitBounds(bounds, _args.padding);
     }
     async addMarkers(_args) {
         const markerIds = [];
@@ -277,12 +290,18 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
         (_a = this.maps[_args.id].markerClusterer) === null || _a === void 0 ? void 0 : _a.setMap(null);
         this.maps[_args.id].markerClusterer = undefined;
     }
-    async onScroll(_args) {
+    async onScroll() {
+        throw new Error('Method not supported on web.');
+    }
+    async onResize() {
+        throw new Error('Method not supported on web.');
+    }
+    async onDisplay() {
         throw new Error('Method not supported on web.');
     }
     async create(_args) {
         console.log(`Create map: ${_args.id}`);
-        await this.importGoogleLib(_args.apiKey);
+        await this.importGoogleLib(_args.apiKey, _args.region, _args.language);
         this.maps[_args.id] = {
             map: new window.google.maps.Map(_args.element, Object.assign({}, _args.config)),
             element: _args.element,
@@ -448,6 +467,7 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
         });
     }
     buildMarkerOpts(marker, map) {
+        var _a;
         let iconImage = undefined;
         if (marker.iconUrl) {
             iconImage = {
@@ -470,7 +490,7 @@ export class CapacitorGoogleMapsWeb extends WebPlugin {
             title: marker.title,
             icon: iconImage,
             draggable: marker.draggable,
-            zIndex: marker.zIndex,
+            zIndex: (_a = marker.zIndex) !== null && _a !== void 0 ? _a : 0,
         };
         return opts;
     }
